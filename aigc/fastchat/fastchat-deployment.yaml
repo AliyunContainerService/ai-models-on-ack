@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: fastchat
+  name: fastchat
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastchat
+  template:
+    metadata:
+      labels:
+        app: fastchat
+        alibabacloud.com/eci: "true"
+      annotations:
+        k8s.aliyun.com/eci-use-specs: ecs.gn6i-c8g1.2xlarge,ecs.gn5-c8g1.2xlarge,ecs.gn6v-c8g1.8xlarge,ecs.gn6i-c16g1.4xlarge
+        k8s.aliyun.com/eci-extra-ephemeral-storage: 100Gi
+    spec:
+      dnsPolicy: Default
+      containers:
+        - command:
+            - sh
+            - -c
+            - "/root/webui.sh"
+          image: yunqi-registry.cn-shanghai.cr.aliyuncs.com/lab/fastchat:v1.1.0
+          imagePullPolicy: IfNotPresent
+          name: fastchat
+          ports:
+            - containerPort: 7860
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 7860
+            timeoutSeconds: 1
+          resources:
+            requests:
+              cpu: "8"
+              memory: 16Gi
+            limits:
+              nvidia.com/gpu: 1

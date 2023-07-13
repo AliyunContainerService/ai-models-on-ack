@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: stable-diffusion
+  name: stable-diffusion
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stable-diffusion
+  template:
+    metadata:
+      labels:
+        app: stable-diffusion
+    spec:
+      containers:
+        - args:
+            - --listen
+            - --skip-torch-cuda-test
+            - --no-half
+          command:
+            - python3
+            - launch.py
+          image: yunqi-registry.cn-shanghai.cr.aliyuncs.com/lab/stable-diffusion:v1.2.0
+          imagePullPolicy: IfNotPresent
+          name: stable-diffusion
+          ports:
+            - containerPort: 7860
+              protocol: TCP
+          readinessProbe:
+            tcpSocket:
+              port: 7860
+          resources:
+            limits:
+              cpu: "8"
+              memory: 16Gi
+              ephemeral-storage: 50Gi
