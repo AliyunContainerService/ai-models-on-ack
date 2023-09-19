@@ -1,7 +1,5 @@
 # Stable Diffusion
 
----
-
 ## QuickStart
 
 ### Prerequisites
@@ -48,7 +46,7 @@ kubectl get svc stable-diffusion-train
 See the [doc](https://developer.aliyun.com/adc/scenario/6d69e5cb2453472587c35b0a9eb68979) for using Dreambooth to train
 your own models.
 
-### Release Tag
+## Release Tag
 
 | tag        | release                                 |
 |------------|-----------------------------------------|
