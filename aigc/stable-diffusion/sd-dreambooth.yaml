@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: stable-diffusion-train
+  name: stable-diffusion-train
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: stable-diffusion-train
+  strategy:
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 100%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: stable-diffusion-train
+        alibabacloud.com/eci: "true"
+      annotations:
+        k8s.aliyun.com/eci-use-specs: ecs.gn6i-c8g1.2xlarge,ecs.gn5-c8g1.2xlarge,ecs.gn6v-c8g1.8xlarge,ecs.gn6i-c16g1.4xlarge
+        k8s.aliyun.com/eci-extra-ephemeral-storage: 80Gi
+    spec:
+      dnsPolicy: Default
+      containers:
+      - command:
+        - sh
+        - -c
+        - "python3 launch.py --listen"
+        image: yunqi-registry.cn-shanghai.cr.aliyuncs.com/lab/stable-diffusion:v2.0.0-gpu
+        imagePullPolicy: IfNotPresent
+        name: stable-diffusion
+        ports:
+        - containerPort: 7860
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 1
+          tcpSocket:
+            port: 7860
+          timeoutSeconds: 1
+        resources:
+          requests:
+            cpu: "8"
+            memory: 16Gi
+          limits:
+            nvidia.com/gpu: 1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.beta.kubernetes.io/alibaba-cloud-loadbalancer-address-type: internet
+    service.beta.kubernetes.io/alibaba-cloud-loadbalancer-instance-charge-type: PayByCLCU
+  name: stable-diffusion-train
+  namespace: default
+spec:
+  externalTrafficPolicy: Local
+  ports:
+  - port: 7860
+    protocol: TCP
+    targetPort: 7860
+  selector:
+    app: stable-diffusion-train
+  type: LoadBalancer
