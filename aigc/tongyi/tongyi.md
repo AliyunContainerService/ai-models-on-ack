@@ -8,16 +8,26 @@ https://help.aliyun.com/zh/dashscope/developer-reference/api-details
 2. 申请通义千问模型API权限，[点此申请](https://help.aliyun.com/zh/dashscope/support/faq?spm=a2c4g.11186623.0.i23#vuoFh)
 
 ### Deploy Jupyter
+1. create a Jupyter Notebook Deployment (CPU)
 ```bash
-# 1. 创建一个Jupyter Notebook
 kubectl apply -f notebook.yaml
-
-# 2. wait deployment ready
-
-# 3. get ExternalIP
-kubectl get svc notebook-svc
-
-# 4. open http://${ExternalIP}:8888 
-
-# 5. 新建一个Notebook，参考tongyi.ipynb调用通义千问API
 ```
+
+2. wait deployment ready
+```bash
+kubectl get po |grep notebook
+
+# NAME                       READY   STATUS    RESTARTS   AGE
+# notebook-d68d854c9-ptvtp   1/1     Running   0          8m5s
+```
+
+3. get ExternalIP
+```bash
+kubectl get svc notebook-svc --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
+```
+
+4. 调用通义千问  
+a. 将${ExternalIP}替换为第三步获取的IP地址，在浏览器中打开连接(http://${ExternalIP}:8888)。  
+b. 创建Notebook，参考[tongyi.ipynb](tongyi.ipynb)调用通义千问API。  
+
+![notebook](notebook.jpg "notebook")

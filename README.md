@@ -2,9 +2,14 @@
 
 Examples of deploying AI applications on ACK
 
+## Applications
 - [Stable Diffusion](aigc/stable-diffusion/stable-diffusion.md)
+- [Stable Diffusion + Dreambooth](aigc/stable-diffusion/stable-diffusion.md)
 - [FastChat](aigc/fastchat/fastchat.md)
 - [通义千问](aigc/tongyi/tongyi.md)
+
+## Framework
+- [Jupyter on ACK (GPU)](framework/jupyter/jupyter-gpu.md)
 
 ---
 

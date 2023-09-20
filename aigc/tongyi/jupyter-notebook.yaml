@@ -17,7 +17,7 @@ spec:
         app: notebook
     spec:
       containers:
-      - image: yunqi-registry.cn-shanghai.cr.aliyuncs.com/lab/base-notebook:python-3.11
+      - image: yunqi-registry.cn-shanghai.cr.aliyuncs.com/lab/base-notebook:python-3.10-gpu
         name: base-notebook
         ports:
         - containerPort: 8888

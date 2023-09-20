@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: notebook
+  name: notebook
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notebook
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: notebook
+        alibabacloud.com/eci: "true"
+      annotations:
+        k8s.aliyun.com/eci-use-specs: ecs.gn6i-c8g1.2xlarge,ecs.gn5-c8g1.2xlarge,ecs.gn6v-c8g1.8xlarge,ecs.gn6i-c16g1.4xlarge
+        k8s.aliyun.com/eci-extra-ephemeral-storage: 100Gi
+    spec:
+      containers:
+        - image: yunqi-registry.cn-shanghai.cr.aliyuncs.com/lab/base-notebook:python-3.10-gpu
+          name: base-notebook
+          ports:
+            - containerPort: 8888
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notebook-svc
+  namespace: default
+spec:
+  ports:
+    - port: 8888
+      protocol: TCP
+      targetPort: 8888
+  selector:
+    app: notebook
+  type: LoadBalancer
