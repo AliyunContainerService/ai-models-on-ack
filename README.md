@@ -10,7 +10,7 @@ Examples of deploying AI applications on ACK
 
 ## Framework
 - [Jupyter on ACK (GPU)](framework/jupyter/jupyter-gpu.md)
-
+- [Kuberay on ACK](framework/kuberay/kuberay.md)
 ---
 
 ## Cautions
