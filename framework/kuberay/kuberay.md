@@ -28,7 +28,7 @@ kubectl get pods
 1. create ray cluster CR
 ```bash
 # Deploy a sample RayCluster CR from the KubeRay Helm chart repo:
-helm install raycluster kuberay/ray-cluster --version 1.0.0-rc.0
+helm install raycluster kuberay/ray-cluster --version 1.0.0-rc.0 -f values.yaml
 
 # Once the RayCluster CR has been created, you can view it by running:
 kubectl get rayclusters
