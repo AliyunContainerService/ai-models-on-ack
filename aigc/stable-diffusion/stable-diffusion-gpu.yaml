@@ -14,12 +14,12 @@ spec:
     metadata:
       labels:
         app: stable-diffusion
+      annotations:
+        k8s.aliyun.com/eci-use-specs: ecs.gn6i-c8g1.2xlarge,ecs.gn5-c8g1.2xlarge,ecs.gn6v-c8g1.8xlarge,ecs.gn6i-c16g1.4xlarge
     spec:
       containers:
         - args:
             - --listen
-            - --skip-torch-cuda-test
-            - --no-half
           command:
             - python3
             - launch.py
@@ -37,3 +37,22 @@ spec:
               cpu: "8"
               memory: 16Gi
               ephemeral-storage: 50Gi
+---
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.beta.kubernetes.io/alibaba-cloud-loadbalancer-address-type: internet
+    service.beta.kubernetes.io/alibaba-cloud-loadbalancer-instance-charge-type: PayByCLCU
+  name: stable-diffusion-svc
+  namespace: default
+spec:
+  externalTrafficPolicy: Local
+  ports:
+    - port: 7860
+      protocol: TCP
+      targetPort: 7860
+  selector:
+    app: stable-diffusion
+  type: LoadBalancer

@@ -39,8 +39,8 @@ spec:
               port: 8000
           resources:
             requests:
-              cpu: "16"
-              memory: 60Gi
+              cpu: "8"
+              memory: 16Gi
               ephemeral-storage: 100Gi
 ---
 apiVersion: v1

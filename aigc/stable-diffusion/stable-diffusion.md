@@ -11,37 +11,56 @@
 
 ### Deploy Stable Diffusion
 
+1. create deployment & service
+
 ```bash
-# 1. create deployment
 # for cpu
-kubectl apply -f stable-diffusion-deployment-cpu.yaml
+kubectl apply -f stable-diffusion-cpu.yaml
 # for gpu
-kubectl apply -f stable-diffusion-deployment-gpu.yaml
+kubectl apply -f stable-diffusion-gpu.yaml
+```  
 
-# 2. create loadbalancer service
-kubectl apply -f stable-diffusion-svc.yaml
+2. wait deployment ready
 
-# 3. wait deployment ready
+```bash
+$ kubectl get po|grep stable-diffusion
+---
+NAME                                READY   STATUS              RESTARTS   AGE
+stable-diffusion-5469d87d76-fjg9f   1/1     Running             0          2m55s
+```  
 
-# 4. get ExternalIP
-kubectl get svc stable-diffusion-svc
+3. get the ExternalIP Address
 
-# 5. open http://${ExternalIP}:7860 
+```bash
+$ kubectl get svc stable-diffusion-svc
 ```
+
+4. open http://${ExternalIP}:7860
+   ![sd](stable-diffusion.jpg "stable-diffusion")
 
 ### Deploy Stable Diffusion Dreambooth
 
+1. create deploy & svc
+
 ```bash
-# 1. create deploy & svc
 kubectl apply -f sd-dreambooth.yaml
-
-# 2. wait pod ready
-
-# 3. get ExternalIP
-kubectl get svc stable-diffusion-train
-
-# 4. open http://${ExternalIP}:7860 
 ```
+
+2. wait pod ready
+
+```bash
+$ kubectl get po|grep stable-diffusion-train
+---
+stable-diffusion-train-5469d87d76-fjg9f   1/1     Running             0          2m55s
+```
+
+3. get ExternalIP
+
+```bash
+kubectl get svc stable-diffusion-train
+```
+
+4. open http://${ExternalIP}:7860
 
 See the [doc](https://developer.aliyun.com/adc/scenario/6d69e5cb2453472587c35b0a9eb68979) for using Dreambooth to train
 your own models.

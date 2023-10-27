@@ -11,17 +11,31 @@
 
 ### Deploy Qwen-7B-Chat
 
+1. create deployment & service
+
 ```bash
-# 1. create deployment & service
 # for cpu
 kubectl apply -f qwen-7b-chat-cpu.yaml
 # for gpu
 kubectl apply -f qwen-7b-chat-gpu.yaml
-
-# 3. wait deployment ready
-
-# 4. get ExternalIP
-kubectl get svc qwen-7b-chat-svc
-
-# 5. open http://${ExternalIP}:8000
 ```
+
+2. wait deployment ready
+
+```bash
+$ kubectl get po |grep qwen-7b-chat
+---
+NAME                                READY   STATUS              RESTARTS   AGE
+fastchat-65f7cbfbc5-gb7wd           1/1     Running             0          36s
+```
+
+3. get ExternalIP
+
+```bash
+kubectl get svc qwen-7b-chat-svc
+```
+
+4. open http://${ExternalIP}:8000
+   ![qwen-chatbot](qwen-chatbot.jpg "qwen-chatbot")
+
+
