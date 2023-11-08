@@ -1,0 +1,3 @@
+image:
+  repository: yunqi-registry.cn-shanghai.cr.aliyuncs.com/lab/ack_ray
+  tag: 2.6.3

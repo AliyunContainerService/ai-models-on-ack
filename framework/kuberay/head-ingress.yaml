@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  labels:
+    ingress-controller: nginx
+  name: raycluster-kuberay-head-svc
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+    - http:
+        paths:
+          - backend:
+              service:
+                name: raycluster-kuberay-head-svc
+                port:
+                  number: 8265
+            path: /
+            pathType: Prefix
