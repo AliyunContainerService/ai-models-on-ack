@@ -63,4 +63,4 @@ spec:
       targetPort: 7860
   selector:
     app: fastchat
-  type: LoadBalancer
+  type: ClusterIP

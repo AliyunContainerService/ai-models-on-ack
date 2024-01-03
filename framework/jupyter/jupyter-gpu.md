@@ -12,23 +12,38 @@
 ### Deploy Stable Diffusion
 
 1. create jupyter deployment & service
+
 ```bash
 kubectl apply -f jupyter-gpu.yaml
 ```  
 
 2. wait deployment ready
+
 ```bash
 kubectl get po |grep notebook
 
 # NAME                       READY   STATUS    RESTARTS   AGE
 # notebook-d68d854c9-ptvtp   1/1     Running   0          8m5s
 ```
-   
 
-3. get ExternalIP
-```bash
-kubectl get svc notebook-svc --output jsonpath='{.status.loadBalancer.ingress[0].ip}'
+3. connect to the Jupyter Notebook
+
+Run the following command to port-forward:
+
+```
+kubectl port-forward -n <namespace> service/notebook-svc 8888:8888
 ```
 
-4. open the returned IP (http://${ExternalIP}:8888) in the web browser
+And then open the console using the following URL:
+
+```
+http://localhost:8888
+```
+
 ![jupyter-gpu](jupyter-gpu.jpg "jupyter-gpu")
+
+Run the following command to check the gpu device:
+
+```python
+! nvidia-smi
+```

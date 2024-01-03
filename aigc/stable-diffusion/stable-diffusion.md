@@ -29,14 +29,21 @@ NAME                                READY   STATUS              RESTARTS   AGE
 stable-diffusion-5469d87d76-fjg9f   1/1     Running             0          2m55s
 ```  
 
-3. get the ExternalIP Address
+3. Using Stable Diffusion WebUI
 
-```bash
-$ kubectl get svc stable-diffusion-svc
+Run the following command to port-forward:
+
+```
+kubectl port-forward -n <namespace> service/stable-diffusion-svc 7860:7860
 ```
 
-4. open http://${ExternalIP}:7860
-   ![sd](stable-diffusion.jpg "stable-diffusion")
+And then open the console using the following URL:
+
+```
+http://localhost:7860
+```
+
+![stable-diffusion](stable-diffusion.jpg "stable-diffusion")
 
 ### Deploy Stable Diffusion Dreambooth
 
@@ -54,23 +61,27 @@ $ kubectl get po|grep stable-diffusion-train
 stable-diffusion-train-5469d87d76-fjg9f   1/1     Running             0          2m55s
 ```
 
-3. get ExternalIP
+3. Using Stable Diffusion WebUI with dreambooth
 
-```bash
-kubectl get svc stable-diffusion-train
+Run the following command to port-forward:
+
+```
+kubectl port-forward -n <namespace> service/stable-diffusion-train 7860:7860
 ```
 
-4. open http://${ExternalIP}:7860
+And then open the console using the following URL:
+
+```
+http://localhost:7860
+```
 
 See the [doc](https://developer.aliyun.com/adc/scenario/6d69e5cb2453472587c35b0a9eb68979) for using Dreambooth to train
 your own models.
 
 ## Release Tag
 
-| tag        | release                                 |
-|------------|-----------------------------------------|
-| v1.2.0     | model: majicmixRealistic_v5.safetensors |           |
-| v1.2.1     | fix api not working                     |
-| v1.4.0     | model: SDXL ; AUTOMATIC1111 v1.5.0      |
-| v2.0.0-gpu | model: sd v1.5; support dreambooth      |
+| tag        | date    | release                                                   |
+|------------|---------|-----------------------------------------------------------|
+| v1.4.0     | 2023-12 | model: v1-5-pruned-emaonly.safetensors; WebUI版本:v1.6.0    | 
+| v2.0.0-gpu | 2023-12 | model: v1-5-pruned-emaonly.safetensors;support dreambooth |                    |
 

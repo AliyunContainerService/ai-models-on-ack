@@ -32,11 +32,26 @@ NAME                                READY   STATUS    RESTARTS   AGE
 fastchat-65f7cbfbc5-gb7wd           1/1     Running   0          30m
 ```
 
-3. get ExternalIP
+3. Using FastChat
 
-```bash
-kubectl get svc fastchat-svc
+Run the following command to port-forward:
+
+```
+kubectl port-forward -n <namespace> service/fastchat-svc 7860:7860
 ```
 
-4. open http://${ExternalIP}:7860
-   ![fastchat](fastchat.jpg "fastchat")
+And then open the console using the following URL:
+
+```
+http://localhost:7860
+```
+
+![fastchat](fastchat.jpg "fastchat")
+
+## Release Tag
+
+| tag    | Date    | release                    |
+|--------|---------|----------------------------|
+| v1.1.0 | 2023-12 | model: fastchat-t5-3b-v1.0 |           
+
+

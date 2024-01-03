@@ -26,16 +26,31 @@ kubectl apply -f qwen-7b-chat-gpu.yaml
 $ kubectl get po |grep qwen-7b-chat
 ---
 NAME                                READY   STATUS              RESTARTS   AGE
-fastchat-65f7cbfbc5-gb7wd           1/1     Running             0          36s
+qwen-7b-chat-65f7cbfbc5-gb7wd           1/1     Running             0          36s
 ```
 
-3. get ExternalIP
+3. Using qwen-chatbot
 
-```bash
-kubectl get svc qwen-7b-chat-svc
+Run the following command to port-forward:
+
+```
+kubectl port-forward -n <namespace> service/qwen-7b-chat-svc 8000:8000
 ```
 
-4. open http://${ExternalIP}:8000
-   ![qwen-chatbot](qwen-chatbot.jpg "qwen-chatbot")
+And then open the console using the following URL:
+
+```
+http://localhost:8000
+```
+
+![qwen-chatbot](qwen-chatbot.jpg "qwen-chatbot")
+
+## Release Tag
+
+| tag | Date    | release           |
+|-----|---------|-------------------|
+| v1  | 2023-12 | support cpu & gpu |           
+
+
 
 

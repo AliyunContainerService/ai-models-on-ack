@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-{{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels: {{ include "chat.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.chat.pod.replicas |default 1 }}
+  selector:
+    matchLabels: {{ include "chat.matchLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with $annotation := include "chat.annotations" . }}
+      annotations: {{ $annotation | nindent 8 }}
+      {{- end }}
+      labels: {{ include "chat.labels" . | nindent 8}}
+    spec:
+      containers:
+        - name: chat
+          image: {{ include "chat.image" . }}
+          imagePullPolicy: {{ .Values.chat.pod.image.pullPolicy }}
+          env:
+            - name: LLM_MODEL
+              value: "{{ .Values.llm.model }}"
+            - name: LLM_HOST
+              value: "llm-{{ .Release.Name }}"
+            - name: LOAD_8BIT
+              value: "{{ include "llm.load8bit" . }}"
+            - name: EMBEDDING_MODEL
+              value: "{{ .Values.db.embeddingModel }}"
+            - name: DEFAULT_VS_TYPE
+              value: "{{ .Values.db.dbType }}"
+          {{- if eq .Values.db.dbType "adb" }}
+          envFrom:
+            - secretRef:
+                name: "db-{{ .Release.Name }}"
+          {{- end }}
+          command:
+            - bash
+            - -c
+            - python3 init_database.py --recreate-vs && python3 startup.py --api -w
+          ports:
+            - containerPort: 8501
+              protocol: TCP
+            - containerPort: 7861
+              protocol: TCP
+          {{- with $readiness := .Values.chat.pod.readinessProbe }}
+          readinessProbe:
+            {{- toYaml $readiness | nindent 12 }}
+          {{- end }}
+          {{- with $livenessProbe := .Values.chat.pod.livenessProbe }}
+          livenessProbe:
+            {{- toYaml $livenessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.chat.pod.resources | nindent 12 }}
+          volumeMounts:
+            {{- if .Values.chat.kbPVC }}
+            - mountPath: /root/Langchain-Chatchat/knowledge_base
+              name: database-pvc
+            {{- end }}
+      {{- with .Values.chat.pod.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        {{- if .Values.chat.kbPVC }}
+        - name: database-pvc
+          persistentVolumeClaim:
+            claimName: {{ .Values.chat.kbPVC }}
+        {{- end }}

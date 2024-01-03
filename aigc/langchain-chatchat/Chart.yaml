@@ -1,0 +1,17 @@
+apiVersion: v2
+name: langchain-chatchat
+description: A Helm chart for langchain-chatchat
+type: application
+version: 0.1.0
+kubeVersion: ">= v1.18.0-0"
+appVersion: "1.1.0"
+keywords:
+  - category:aigc
+  - langchain-chatchat
+  - namespace:default
+  - releaseName:chatchat
+  - arch:amd64
+  - agreement:cos.k8s.chart.agreement.stable-diffusion
+maintainers:
+  - email: yulin.ll@alibaba-inc.com
+    name: yulin

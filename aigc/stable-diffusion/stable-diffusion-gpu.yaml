@@ -23,7 +23,7 @@ spec:
           command:
             - python3
             - launch.py
-          image: yunqi-registry.cn-shanghai.cr.aliyuncs.com/lab/stable-diffusion:v1.2.0
+          image: kube-ai-registry.cn-shanghai.cr.aliyuncs.com/kube-ai/stable-diffusion:v1.4.0
           imagePullPolicy: IfNotPresent
           name: stable-diffusion
           ports:
@@ -55,4 +55,4 @@ spec:
       targetPort: 7860
   selector:
     app: stable-diffusion
-  type: LoadBalancer
+  type: ClusterIP

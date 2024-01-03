@@ -35,4 +35,4 @@ spec:
     targetPort: 8888
   selector:
     app: notebook
-  type: LoadBalancer
+  type: ClusterIP

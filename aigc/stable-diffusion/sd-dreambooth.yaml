@@ -67,4 +67,4 @@ spec:
     targetPort: 7860
   selector:
     app: stable-diffusion-train
-  type: LoadBalancer
+  type: ClusterIP

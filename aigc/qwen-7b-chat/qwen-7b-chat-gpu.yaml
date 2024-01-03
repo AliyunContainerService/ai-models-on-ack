@@ -59,4 +59,4 @@ spec:
       targetPort: 8000
   selector:
     app: qwen-7b-chat
-  type: LoadBalancer
+  type: ClusterIP

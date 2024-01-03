@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: chat-{{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  {{- with $annotations := .Values.chat.service.annotations }}
+  annotations: {{- toYaml $annotations | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.chat.service.type }}
+  ports:
+    - name: console
+      port: 8501
+      targetPort: 8501
+    - name: fastapi
+      port: 7861
+      targetPort: 7861
+  selector: {{ include "chat.matchLabels" . | nindent 4 }}

@@ -1,0 +1,185 @@
+# Default values for ack-langchain-chatchat.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# appNameOverride: langchain-chatchat
+
+##
+## LLM Model Inference Service
+##
+llm:
+  # Name of the LLM model. Default model is qwen-7b-chat-aiacc. Supported models can be found in README.md
+  model: qwen-7b-chat-aiacc
+  # Name of the pvc which has the llm model files. The model needs to follow the specified mount path, see
+  # READEME.md for the constraints between the model and the mounting path.
+  # If you do not use the default model, you have to specify this param.
+  modelPVC: ""
+  load8bit: true
+
+  pod:
+    replicas: 1
+    # The llm pod type. Supported values: ecs or eci. The default is ecs.
+    # If DeepGPU-LLM is required, the instanceType must be set to ecs.
+    instanceType: ecs
+
+    annotations: {}
+    # Default annotations for eci instance type. Update them according to your needs.
+    # For more details on eci annotations, please see https://help.aliyun.com/zh/eci/user-guide/pod-annotations-1
+    # annotations:
+    #   k8s.aliyun.com/eci-use-specs: ecs.gn6i-c8g1.2xlarge,ecs.gn6i-c16g1.4xlarge,ecs.gn6v-c8g1.8xlarge,ecs.gn7i-c8g1.2xlarge,ecs.gn7i-c16g1.4xlarge
+    #   k8s.aliyun.com/eci-extra-ephemeral-storage: "100Gi"
+
+    labels: {}
+    # Default label for eci instance type. Update them according to your needs.
+    # labels:
+    #   alibabacloud.com/eci: "true"
+
+    image:
+      registry: kube-ai-registry.cn-shanghai.cr.aliyuncs.com
+      repository: kube-ai/chatchat
+      tag: aiacc-v0.1.4
+      pullPolicy: IfNotPresent
+
+    # Compute Resources required by llm container.
+    # Please modify it if you change the default image or model.
+    resources:
+      # Limits describes the maximum amount of compute resources allowed.
+      limits:
+        nvidia.com/gpu: "1"
+      #  Requests describes the minimum amount of compute resources required.
+      requests:
+        cpu: "2"
+        memory: 6Gi
+        nvidia.com/gpu: "1"
+
+    # Periodic probe of container liveness. Container will be restarted if the
+    # probe fails.
+    # If you change the default image, please also modify the livenessProbe.
+    livenessProbe:
+      httpGet:
+        path: /v1/models
+        port: 8888
+      initialDelaySeconds: 10
+
+    # Periodic probe of container service readiness. Container will be removed
+    # from service endpoints if the probe fails.
+    # If you change the default image, please also modify the readinessProbe.
+    readinessProbe:
+      httpGet:
+        path: /v1/models
+        port: 8888
+      initialDelaySeconds: 10
+
+    # StartupProbe indicates that the Pod has successfully initialized. If
+    # specified, no other probes are executed until this completes successfully.
+    # If this probe fails, the Pod will be restarted, just as if the
+    # livenessProbe failed. This can be used to provide different probe
+    # parameters at the beginning of a Pod's lifecycle, when it might take a long
+    # time to load data or warm a cache, than during steady-state operation.
+    # If you change the default image, please also modify the startupProbe.
+    startupProbe:
+      exec:
+        command:
+        - curl
+        - -X POST
+        - http://localhost:20002/worker_get_status
+      periodSeconds: 10
+      failureThreshold: 30
+      initialDelaySeconds: 90
+
+    tolerations: []
+
+  service:
+    # type determines how the Service is exposed. Defaults to ClusterIP. Valid
+    # options are ExternalName, ClusterIP, NodePort, and LoadBalancer.
+    type: "ClusterIP"
+    annotations: {}
+    # annotations:
+    #   service.beta.kubernetes.io/alibaba-cloud-loadbalancer-address-type: "intranet"
+
+##
+## Chat Web UI
+##
+chat:
+  # Name of the pvc which store the knowledge base data. The knowledge base data can be preserved even if pod is restarted.
+  kbPVC: ""
+
+  pod:
+    replicas: 1
+    # The chat pod type. Supported values: ecs or eci. The default is ecs.
+    instanceType: ecs
+
+    annotations: {}
+    # Default annotations for eci instance type. Update them according to your needs.
+    # For more details on eci annotations, please see https://help.aliyun.com/zh/eci/user-guide/pod-annotations-1
+    # annotations:
+    #   k8s.aliyun.com/eci-extra-ephemeral-storage: "100Gi"
+
+
+    labels: {}
+    # Default label for eci instance type. Update them according to your needs.
+    # labels:
+    #   alibabacloud.com/eci: "true"
+
+    image:
+      registry: kube-ai-registry.cn-shanghai.cr.aliyuncs.com
+      repository: kube-ai/chatchat
+      tag: aiacc-v0.1.4
+      pullPolicy: IfNotPresent
+
+    # Compute Resources required by chat container.
+    # Please modify it if you change the default image or model.
+    resources:
+      # Requests describes the minimum amount of compute resources required.
+      requests:
+        cpu: "4"
+        memory: 8Gi
+
+    # Periodic probe of container liveness. Container will be restarted if the
+    # probe fails.
+    # If you change the default image, please also modify the livenessProbe.
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 8501
+      initialDelaySeconds: 120
+
+    # Periodic probe of container service readiness. Container will be removed
+    # from service endpoints if the probe fails.
+    # If you change the default image, please also modify the readinessProbe.
+    readinessProbe:
+      httpGet:
+        path: /
+        port: 8501
+      initialDelaySeconds: 100
+
+    tolerations: []
+
+  service:
+    # type determines how the Service is exposed. Defaults to ClusterIP. Valid
+    # options are ExternalName, ClusterIP, NodePort, and LoadBalancer.
+    type: "ClusterIP"
+    annotations: {}
+    # annotations:
+    #   service.beta.kubernetes.io/alibaba-cloud-loadbalancer-address-type: "intranet"
+
+
+##
+## DB Configuration
+##
+db:
+  # The type of DataBase to store knowledge base data. Supported values: faiss or adb. The default is faiss.
+  dbType: faiss
+  embeddingModel: text2vec-bge-large-chinese
+  adb:
+    pgHost: ""
+    pgPort: ""
+    pgDataBase: ""
+    pgUser: ""
+    pgPassword: ""
+
+
+
+
+
+

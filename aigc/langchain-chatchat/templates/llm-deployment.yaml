@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels: {{ include "llm.labels" . | nindent 4 }}
+  name: llm-{{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.llm.pod.replicas }}
+  selector:
+    matchLabels: {{ include "llm.matchLabels" .| nindent 6 }}
+  template:
+    metadata:
+      {{- with $annotations := include "llm.annotations" .}}
+      annotations: {{ $annotations | nindent 8}}
+      {{- end}}
+      labels: {{ include "llm.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - image: {{ include "llm.image" . }}
+          imagePullPolicy: {{ .Values.llm.pod.image.pullPolicy }}
+          name: llm
+          env:
+            - name: LLM_MODEL
+              value: "{{ .Values.llm.model }}"
+            - name: LLM_HOST
+              value: "0.0.0.0"
+            - name: LOAD_8BIT
+              value: "{{ include "llm.load8bit" . }}"
+            - name: EMBEDDING_MODEL
+              value: "{{ .Values.db.embeddingModel }}"
+            - name: DEFAULT_VS_TYPE
+              value: "{{ .Values.db.dbType }}"
+          command:
+            - bash
+            - -c
+            - python3 startup.py --llm-api
+          ports:
+            - containerPort: 8888
+              protocol: TCP
+            - containerPort: 20001
+              protocol: TCP
+          {{- with $readiness := .Values.llm.pod.readinessProbe }}
+          readinessProbe:
+            {{- toYaml $readiness | nindent 12}}
+          {{- end }}
+          {{- with $livenessProbe := .Values.llm.pod.livenessProbe }}
+          livenessProbe:
+            {{- toYaml $livenessProbe | nindent 12}}
+          {{- end }}
+          {{- with $startupProbe := .Values.llm.pod.startupProbe }}
+          startupProbe:
+            {{- toYaml $startupProbe | nindent 12 }}
+          {{- end }}
+          {{- with $resource := .Values.llm.pod.resources }}
+          resources:
+            {{- toYaml $resource | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- if .Values.llm.modelPVC }}
+            - mountPath: /llm-model
+              name: model-pvc
+            {{- end }}
+      {{- with .Values.llm.pod.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        {{- if .Values.llm.modelPVC }}
+        - name: model-pvc
+          persistentVolumeClaim:
+            claimName: {{ .Values.llm.modelPVC }}
+        {{- end }}
