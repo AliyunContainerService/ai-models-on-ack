@@ -1,0 +1,29 @@
+FROM nvidia/cuda:11.4.3-cudnn8-devel-ubuntu20.04 as exporterBuilder
+ENV TZ=Asia/Shanghai
+ENV DEBIAN_FRONTEND=noninteractive
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN apt-get update && apt install -y golang git munge libhttp-parser-dev libjson-c-dev libyaml-dev libjwt-dev libgtk2.0-dev libreadline-dev libpmix-dev libmysqlclient-dev libhwloc-dev openmpi-bin openmpi-common libopenmpi-dev rpm libmunge-dev libmunge2 libpam-dev perl python3 systemd lua5.3 libnvidia-ml-dev libhdf5-dev
+# Download the source code before building the image
+COPY ./slurm-23.02.7.tar.bz2 ./slurm-23.02.7.tar.bz2
+RUN tar -xaf slurm-23.02.7.tar.bz2
+RUN cd slurm-23.02.7 && ./configure --prefix=/usr/ --sysconfdir=/etc/slurm && make 
+
+FROM nvidia/cuda:11.4.3-cudnn8-runtime-ubuntu20.04
+ENV TZ=Asia/Shanghai
+ENV DEBIAN_FRONTEND=noninteractive
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN apt update
+RUN apt install -y munge libhttp-parser-dev libjson-c-dev libyaml-dev libjwt-dev libgtk2.0-dev libreadline-dev libpmix-dev libmysqlclient-dev libhwloc-dev openmpi-bin openmpi-common libopenmpi-dev rpm libmunge-dev libmunge2 libpam-dev perl python3 systemd lua5.3 inotify-tools openssh-server pip libnvidia-ml-dev libhdf5-dev
+COPY --from=0 /slurm-23.02.7 /slurm-23.02.7
+RUN cd slurm-23.02.7 && make install && cd ../ && rm -rf /slurm-23.02.7
+RUN apt remove libnvidia-ml-dev libnvidia-compute-545 -y; apt autoremove -y ; ln -s /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1 /usr/lib/x86_64-linux-gnu/libnvidia-ml.so
+COPY ./sh ./
+RUN mkdir /etc/slurm
+RUN chmod +x create-users.sh munge-inisitalization.sh slurm-initialization.sh slurm-suspend.sh slurm-resume.sh slurmd slurmctld slurmdbd slurmrestd
+RUN touch /var/log/slurm-resume.log /var/log/slurm-suspend.log ; chmod 777 /var/log/slurm-resume.log /var/log/slurm-suspend.log
+RUN mv slurmd /etc/init.d/slurmd && mv slurmdbd /etc/init.d/slurmdbd && mv slurmctld /etc/init.d/slurmctld
+RUN ./create-users.sh && ./munge-inisitalization.sh && ./slurm-initialization.sh
+RUN rm ./create-users.sh ./munge-inisitalization.sh ./slurm-initialization.sh
+ENV NVIDIA_VISIBLE_DEVICES=
+RUN apt-get update && apt-get upgrade -y && rm -rf /var/cache/apt/
