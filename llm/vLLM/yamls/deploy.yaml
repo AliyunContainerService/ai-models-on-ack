@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm
+  labels:
+    app: vllm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm
+  template:
+    metadata:
+      labels:
+        app: vllm
+    spec:
+      volumes:
+        - name: model
+          persistentVolumeClaim:
+            claimName: llm-model
+      containers:
+        - name: vllm
+          image: kube-ai-registry.cn-shanghai.cr.aliyuncs.com/kube-ai/vllm:0.4.1
+          command:
+            - "sh"
+            - "-c"
+            - "python3 -m vllm.entrypoints.openai.api_server --trust-remote-code --model /model/Qwen1.5-4B-Chat/ --served-model-name qwen --gpu-memory-utilization 0.95 --max-model-len 8192 --dtype half"
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          volumeMounts:
+            - mountPath: "/model/Qwen1.5-4B-Chat"
+              name: model
+          resources:
+            limits:
+              nvidia.com/gpu: '1'
+            requests:
+              nvidia.com/gpu: '1'
+              memory: 12Gi
+              cpu: 6

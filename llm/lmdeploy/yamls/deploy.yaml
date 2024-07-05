@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lmdeploy
+  labels:
+    app: lmdeploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lmdeploy
+  template:
+    metadata:
+      labels:
+        app: lmdeploy
+    spec:
+      volumes:
+        - name: model
+          persistentVolumeClaim:
+            claimName: llm-model
+      containers:
+        - name: lmdeploy
+          image: kube-ai-registry.cn-shanghai.cr.aliyuncs.com/kube-ai/lmdeploy:v0.4.2
+          command:
+            - "sh"
+            - "-c"
+            - "lmdeploy serve api_server /model/Qwen1.5-4B-Chat --server-port 8000"
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          volumeMounts:
+            - mountPath: "/model/Qwen1.5-4B-Chat"
+              name: model
+          resources:
+            limits:
+              nvidia.com/gpu: '1'
+            requests:
+              nvidia.com/gpu: '1'
+              memory: 12Gi
+              cpu: 6

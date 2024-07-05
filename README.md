@@ -7,13 +7,17 @@ Examples of deploying AI applications on ACK
 - [Stable Diffusion + Dreambooth](aigc/stable-diffusion/stable-diffusion.md)
 - [FastChat](aigc/fastchat/fastchat.md)
 - [通义千问API](aigc/tongyi-api/tongyi.md)
-- [Qwen-7B-Chat](aigc/qwen-7b-chat/qwen-7b-chat.md)
 - [Langchain-chatchat](aigc/langchain-chatchat/README.md)
 
 ## Framework
 - [Jupyter on ACK (GPU)](framework/jupyter/jupyter-gpu.md)
 - [Kuberay on ACK](framework/kuberay/kuberay.md)
 - [Slurm on ACK](framework/slurm/README.md)
+
+## LLM
+- [vLLM](llm/vLLM/README.md)
+- [rtp-llm](llm/rtp-llm/README.md)
+- [lmdeploy](llm/lmdeploy/README.md)
 ---
 
 ## Cautions

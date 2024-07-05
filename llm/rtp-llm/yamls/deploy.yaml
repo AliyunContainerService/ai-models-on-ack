@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rtp-llm
+  labels:
+    app: rtp-llm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rtp-llm
+  template:
+    metadata:
+      labels:
+        app: rtp-llm
+    spec:
+      volumes:
+        - name: model
+          persistentVolumeClaim:
+            claimName: llm-model
+      containers:
+        - name: rtp-llm
+          image: registry.cn-hangzhou.aliyuncs.com/havenask/rtp_llm:0.1.12_cuda12
+          command:
+            - "sh"
+            - "-c"
+            - "MODEL_TYPE=qwen_2 START_PORT=8000 CHECKPOINT_PATH=/model/Qwen1.5-4B-Chat TOKENIZER_PATH=/model/Qwen1.5-4B-Chat MAX_SEQ_LEN=2048 python3 -m maga_transformer.start_server"
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          volumeMounts:
+            - mountPath: "/model/Qwen1.5-4B-Chat"
+              name: model
+          resources:
+            limits:
+              nvidia.com/gpu: '1'
+            requests:
+              nvidia.com/gpu: '1'
+              memory: 12Gi
+              cpu: 6
