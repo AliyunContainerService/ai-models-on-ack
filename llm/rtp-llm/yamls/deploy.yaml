@@ -25,6 +25,13 @@ spec:
             - "sh"
             - "-c"
             - "MODEL_TYPE=qwen_2 START_PORT=8000 CHECKPOINT_PATH=/model/Qwen1.5-4B-Chat TOKENIZER_PATH=/model/Qwen1.5-4B-Chat MAX_SEQ_LEN=2048 python3 -m maga_transformer.start_server"
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 30
           volumeMounts:
             - mountPath: "/model/Qwen1.5-4B-Chat"
               name: model

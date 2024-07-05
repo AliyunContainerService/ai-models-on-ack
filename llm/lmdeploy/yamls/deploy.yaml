@@ -25,6 +25,13 @@ spec:
             - "sh"
             - "-c"
             - "lmdeploy serve api_server /model/Qwen1.5-4B-Chat --server-port 8000"
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            tcpSocket:
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 30
           volumeMounts:
             - mountPath: "/model/Qwen1.5-4B-Chat"
               name: model
