@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: oss-secret
+stringData:
+  akId: ${your-accesskey-id}
+  akSecret: ${your-accesskey-secert}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: llm-model
+  labels:
+    alicloud-pvname: llm-model
+spec:
+  capacity:
+    storage: 30Gi
+  accessModes:
+    - ReadOnlyMany
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: ossplugin.csi.alibabacloud.com
+    volumeHandle: model-oss
+    nodePublishSecretRef:
+      name: oss-secret
+      namespace: default
+    volumeAttributes:
+      bucket: ${your-bucket-name}
+      url: ${your-bucket-endpoint} # e.g. oss-cn-hangzhou.aliyuncs.com
+      otherOpts: "-o umask=022 -o max_stat_cache_size=0 -o allow_other"
+      path: "/Qwen1.5-4B-Chat" # your model path
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: llm-model
+spec:
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 30Gi
+  selector:
+    matchLabels:
+      alicloud-pvname: llm-model
