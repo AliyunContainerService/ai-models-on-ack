@@ -6,6 +6,13 @@ RUN apt-get update && apt install -y golang git munge libhttp-parser-dev libjson
 # Download the source code before building the image
 COPY ./slurm-23.02.7.tar.bz2 ./slurm-23.02.7.tar.bz2
 RUN tar -xaf slurm-23.02.7.tar.bz2
+COPY ../node_features/k8s_resources ./slurm-23.02.7/src/plugins/node_features/k8s_resources
+RUN sed -i '/"src\/plugins\/node_features\/Makefile") CONFIG_FILES="\$CONFIG_FILES src\/plugins\/node_features\/Makefile" ;;/ a "    src/plugins/node_features/k8s_resources/Makefile") CONFIG_FILES="\$CONFIG_FILES src/plugins/node_features/k8s_resources/Makefile" ;;' ./slurm-23.02.7/configure
+RUN awk '/^ac_config_files="\$ac_config_files/ && !found { print; print "ac_config_files=\"$ac_config_files src/plugins/node_features/k8s_resources/Makefile\""; found=1; next } { print }' ./slurm-23.02.7/configure > ./slurm-23.02.7/configure.new && mv ./slurm-23.02.7/configure.new ./slurm-23.02.7/configure && chmod +x ./slurm-23.02.7/configure
+RUN cat ./slurm-23.02.7/configure
+RUN sed -i '/^SUBDIRS =/ s/$/ k8s_resources/' ./slurm-23.02.7/src/plugins/node_features/Makefile & \
+sed -i '/^SUBDIRS =/ s/$/ k8s_resources/' ./slurm-23.02.7/src/plugins/node_features/Makefile.in & \
+sed -i '/^SUBDIRS =/ s/$/ k8s_resources/' ./slurm-23.02.7/src/plugins/node_features/Makefile.am
 RUN cd slurm-23.02.7 && ./configure --prefix=/usr/ --sysconfdir=/etc/slurm && make 
 
 FROM nvidia/cuda:11.4.3-cudnn8-runtime-ubuntu20.04
