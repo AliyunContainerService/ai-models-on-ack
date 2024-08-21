@@ -3,9 +3,27 @@ ENV TZ=Asia/Shanghai
 ENV DEBIAN_FRONTEND=noninteractive
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN apt-get update && apt install -y golang git munge libhttp-parser-dev libjson-c-dev libyaml-dev libjwt-dev libgtk2.0-dev libreadline-dev libpmix-dev libmysqlclient-dev libhwloc-dev openmpi-bin openmpi-common libopenmpi-dev rpm libmunge-dev libmunge2 libpam-dev perl python3 systemd lua5.3 libnvidia-ml-dev libhdf5-dev
+
 # Download the source code before building the image
 COPY ./slurm-23.02.7.tar.bz2 ./slurm-23.02.7.tar.bz2
 RUN tar -xaf slurm-23.02.7.tar.bz2
+
+# copy custom slurm plugins into image
+COPY ../slurm-plugins/node_features/k8s_resources ./slurm-23.02.7/src/plugins/node_features/k8s_resources
+RUN sed -i '/"src\/plugins\/node_features\/Makefile") CONFIG_FILES="\$CONFIG_FILES src\/plugins\/node_features\/Makefile" ;;/ a "    src/plugins/node_features/k8s_resources/Makefile") CONFIG_FILES="\$CONFIG_FILES src/plugins/node_features/k8s_resources/Makefile" ;;' ./slurm-23.02.7/configure
+RUN awk '/^ac_config_files="\$ac_config_files/ && !found { print; print "ac_config_files=\"$ac_config_files src/plugins/node_features/k8s_resources/Makefile\""; found=1; next } { print }' ./slurm-23.02.7/configure > ./slurm-23.02.7/configure.new && mv ./slurm-23.02.7/configure.new ./slurm-23.02.7/configure && chmod +x ./slurm-23.02.7/configure
+RUN sed -i '/^SUBDIRS =/ s/$/ k8s_resources/' ./slurm-23.02.7/src/plugins/node_features/Makefile & \
+sed -i '/^SUBDIRS =/ s/$/ k8s_resources/' ./slurm-23.02.7/src/plugins/node_features/Makefile.in & \
+sed -i '/^SUBDIRS =/ s/$/ k8s_resources/' ./slurm-23.02.7/src/plugins/node_features/Makefile.am
+
+COPY ../slurm-plugins/job_submit/k8s_resource_completion_23_02_7 ./slurm-23.02.7/src/plugins/job_submit/k8s_resource_completion
+RUN sed -i '/"src\/plugins\/job_submit\/Makefile") CONFIG_FILES="\$CONFIG_FILES src\/plugins\/job_submit\/Makefile" ;;/ a "    src/plugins/job_submit/k8s_resource_completion/Makefile") CONFIG_FILES="\$CONFIG_FILES src/plugins/job_submit/k8s_resource_completion/Makefile" ;;' ./slurm-23.02.7/configure
+RUN awk '/^ac_config_files="\$ac_config_files/ && !found { print; print "ac_config_files=\"$ac_config_files src/plugins/job_submit/k8s_resource_completion/Makefile\""; found=1; next } { print }' ./slurm-23.02.7/configure > ./slurm-23.02.7/configure.new && mv ./slurm-23.02.7/configure.new ./slurm-23.02.7/configure && chmod +x ./slurm-23.02.7/configure
+RUN sed -i '/^SUBDIRS =/a\\tk8s_resource_completion\\' ./slurm-23.02.7/src/plugins/job_submit/Makefile & \
+sed -i '/^SUBDIRS =/a\\tk8s_resource_completion\\' ./slurm-23.02.7/src/plugins/job_submit/Makefile.in & \
+sed -i '/^SUBDIRS =/a\\tk8s_resource_completion\\' ./slurm-23.02.7/src/plugins/job_submit/Makefile.am
+
+RUN cat ./slurm-23.02.7/configure
 RUN cd slurm-23.02.7 && ./configure --prefix=/usr/ --sysconfdir=/etc/slurm && make 
 
 FROM nvidia/cuda:11.4.3-cudnn8-runtime-ubuntu20.04
