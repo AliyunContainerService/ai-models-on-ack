@@ -20,7 +20,7 @@ package v1
 import (
 	"net/http"
 
-	v1 "github.com/AliyunContainerService/ai-models-on-ack/framework/slurm/slurmcluster-scaler/apis/v1"
+	v1 "github.com/AliyunContainerService/ai-models-on-ack/framework/slurm/slurmcluster-scaler/apis/kai.alibabacloud.com/v1"
 	"github.com/AliyunContainerService/ai-models-on-ack/framework/slurm/slurmcluster-scaler/generated/kai.alibabacloud.com/clientset/versioned/scheme"
 	rest "k8s.io/client-go/rest"
 )
