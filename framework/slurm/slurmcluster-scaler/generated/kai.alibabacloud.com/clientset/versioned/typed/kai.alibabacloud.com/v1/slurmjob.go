@@ -21,7 +21,7 @@ import (
 	"context"
 	"time"
 
-	v1 "github.com/AliyunContainerService/ai-models-on-ack/framework/slurm/slurmcluster-scaler/apis/v1"
+	v1 "github.com/AliyunContainerService/ai-models-on-ack/framework/slurm/slurmcluster-scaler/apis/kai.alibabacloud.com/v1"
 	scheme "github.com/AliyunContainerService/ai-models-on-ack/framework/slurm/slurmcluster-scaler/generated/kai.alibabacloud.com/clientset/versioned/scheme"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	types "k8s.io/apimachinery/pkg/types"

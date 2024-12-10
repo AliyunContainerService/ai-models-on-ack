@@ -1,5 +1,5 @@
 #!/bin/bash
-SCALER=/usr/bin/slurmcluster-scaler
+SCALER=/slurmcluster-scaler
 SLURM_NAMESPACE=$(cat /etc/slurmd-podinfo/namespace)
 SLURM_CLUSTER=$(grep "^kai.alibabacloud.com/slurm-cluster=" "/etc/slurmd-podinfo/labels" | awk -F "=" '{print $2}' | tr -d \'\")
 echo "namespace: $SLURM_NAMESPACE cluster: $SLURM_CLUSTER" >> /var/log/slurm-resume.log

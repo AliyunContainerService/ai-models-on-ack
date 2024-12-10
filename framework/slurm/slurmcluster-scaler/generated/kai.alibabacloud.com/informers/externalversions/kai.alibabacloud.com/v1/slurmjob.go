@@ -21,7 +21,7 @@ import (
 	"context"
 	time "time"
 
-	kaialibabacloudcomv1 "github.com/AliyunContainerService/ai-models-on-ack/framework/slurm/slurmcluster-scaler/apis/v1"
+	kaialibabacloudcomv1 "github.com/AliyunContainerService/ai-models-on-ack/framework/slurm/slurmcluster-scaler/apis/kai.alibabacloud.com/v1"
 	versioned "github.com/AliyunContainerService/ai-models-on-ack/framework/slurm/slurmcluster-scaler/generated/kai.alibabacloud.com/clientset/versioned"
 	internalinterfaces "github.com/AliyunContainerService/ai-models-on-ack/framework/slurm/slurmcluster-scaler/generated/kai.alibabacloud.com/informers/externalversions/internalinterfaces"
 	v1 "github.com/AliyunContainerService/ai-models-on-ack/framework/slurm/slurmcluster-scaler/generated/kai.alibabacloud.com/listers/kai.alibabacloud.com/v1"

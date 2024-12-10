@@ -20,7 +20,7 @@ package fake
 import (
 	"context"
 
-	v1 "github.com/AliyunContainerService/ai-models-on-ack/framework/slurm/slurmcluster-scaler/apis/v1"
+	v1 "github.com/AliyunContainerService/ai-models-on-ack/framework/slurm/slurmcluster-scaler/apis/kai.alibabacloud.com/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
 	types "k8s.io/apimachinery/pkg/types"
