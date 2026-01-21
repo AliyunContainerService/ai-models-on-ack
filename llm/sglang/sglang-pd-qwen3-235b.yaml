@@ -1,0 +1,217 @@
+apiVersion: workloads.x-k8s.io/v1alpha1
+kind: RoleBasedGroup
+metadata:
+  name: sglang-pd-demo
+spec:
+  roles:
+  - name: router
+    replicas: 1
+    dependencies: [ "decode", "prefill" ]
+    template:
+      spec:
+        containers:
+        - name: scheduler
+          image: ac2-mirror-registry.cn-hangzhou.cr.aliyuncs.com/evaluate/mooncake:0.3.7.post2-sglang0.5.5.post3-deepep
+          command:
+          - python
+          - -m
+          - sglang_router.launch_router
+          - --pd-disaggregation
+          - --prefill
+          - http://sglang-pd-demo-prefill-0.s-sglang-pd-demo-prefill:30001
+          - "8991"
+          - --decode
+          - http://sglang-pd-demo-decode-0.s-sglang-pd-demo-decode:30001
+          - --host
+          - 0.0.0.0
+          - --port
+          - "8000"
+          - --policy
+          - cache_aware
+          securityContext:
+            privileged: true
+        dnsPolicy: ClusterFirstWithHostNet
+        hostNetwork: true
+  - name: prefill
+    replicas: 1
+    template:
+      spec:
+        volumes:
+        - name: model
+          persistentVolumeClaim:
+            claimName: qwen3-235b
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 30Gi
+        dnsPolicy: ClusterFirstWithHostNet
+        hostNetwork: true
+        containers:
+        - name: sglang-prefill
+          image: ac2-mirror-registry.cn-hangzhou.cr.aliyuncs.com/evaluate/mooncake:0.3.7.post2-sglang0.5.5.post3-deepep
+          imagePullPolicy: Always
+          env:
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: SGLANG_USE_MODELSCOPE
+            value: "true"
+          command:
+          - python3
+          - -m
+          - sglang.launch_server
+          - --model-path
+          - /models/Qwen3-235B-A22B-Instruct-2507-FP8
+          - --port
+          - "30001"
+          - --base-gpu-id
+          - "0"
+          - --disaggregation-mode
+          - prefill
+          - --disable-radix-cache
+          - --disaggregation-bootstrap-port
+          - "8991"
+          - --host
+          - $(POD_IP)
+          - --mem-fraction-static
+          - "0.75"
+          - --tp-size
+          - "4"
+          - --ep-size
+          - "4"
+          - --enable-dp-attention
+          - --dp-size
+          - "4"
+          - --moe-a2a-backend
+          - deepep
+          - --cuda-graph-max-bs
+          - "128"
+          - --chunked-prefill-size
+          - "16000"
+          - --load-balance-method
+          - round_robin
+          ports:
+            - containerPort: 30001
+              name: http
+          readinessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            tcpSocket:
+              port: 30001
+          resources:
+            limits:
+              nvidia.com/gpu: "4"
+              aliyun/erdma: 1
+            requests:
+              nvidia.com/gpu: "4"
+              aliyun/erdma: 1
+          securityContext:
+            privileged: true
+          volumeMounts:
+          - mountPath: /models/Qwen3-235B-A22B-Instruct-2507-FP8
+            name: model
+          - mountPath: /dev/shm
+            name: dshm
+  - name: decode
+    replicas: 1
+    template:
+      spec:
+        volumes:
+        - name: model
+          persistentVolumeClaim:
+            claimName: qwen3-235b
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 30Gi
+        dnsPolicy: ClusterFirstWithHostNet
+        hostNetwork: true
+        containers:
+        - name: sglang-decode
+          image: ac2-mirror-registry.cn-hangzhou.cr.aliyuncs.com/evaluate/mooncake:0.3.7.post2-sglang0.5.5.post3-deepep
+          imagePullPolicy: Always
+          env:
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: SGLANG_USE_MODELSCOPE
+            value: "true"
+          command:
+          - python3
+          - -m
+          - sglang.launch_server
+          - --model-path
+          - /models/Qwen3-235B-A22B-Instruct-2507-FP8
+          - --port
+          - "30001"
+          - --base-gpu-id
+          - "0"
+          - --disaggregation-mode
+          - decode
+          - --disable-radix-cache
+          - --host
+          - $(POD_IP)
+          - --mem-fraction-static
+          - "0.75"
+          - --tp-size
+          - "8"
+          - --ep-size
+          - "8"
+          - --enable-dp-attention
+          - --dp-size
+          - "8"
+          - --moe-a2a-backend
+          - deepep
+          - --attention-backend
+          - flashinfer
+          - --cuda-graph-max-bs
+          - "32"
+          - --load-balance-method
+          - shortest_queue
+          - --prefill-round-robin-balance
+          - --max-running-requests
+          - "300"
+          - --decode-log-interval
+          - "10"
+          ports:
+            - containerPort: 30001
+              name: http
+          readinessProbe:
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            tcpSocket:
+              port: 30001
+          resources:
+            limits:
+              nvidia.com/gpu: "8"
+              aliyun/erdma: 1
+            requests:
+              nvidia.com/gpu: "8"
+              aliyun/erdma: 1
+          securityContext:
+            privileged: true
+          volumeMounts:
+          - mountPath: /models/Qwen3-235B-A22B-Instruct-2507-FP8
+            name: model
+          - mountPath: /dev/shm
+            name: dshm
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: sglang-pd-demo
+  name: sglang-pd-demo
+  namespace: default
+spec:
+  ports:
+  - name: http
+    port: 8000
+    protocol: TCP
+    targetPort: 8000
+  selector:
+    rolebasedgroup.workloads.x-k8s.io/name: sglang-pd-demo
+    rolebasedgroup.workloads.x-k8s.io/role: router
+  type: ClusterIP
