@@ -65,3 +65,4 @@ spec:
     rolebasedgroup.workloads.x-k8s.io/name: qwen3-5-vllm-agg
     rolebasedgroup.workloads.x-k8s.io/role: server
   type: ClusterIP
+
