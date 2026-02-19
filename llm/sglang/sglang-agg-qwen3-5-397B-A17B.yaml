@@ -1,0 +1,70 @@
+apiVersion: workloads.x-k8s.io/v1alpha1
+kind: RoleBasedGroup
+metadata:
+  name: qwen3-5-sglang-agg
+spec:
+  roles:
+    - name: server
+      replicas: 1
+      template:
+        spec:
+          containers:
+            - name: engine
+              image: ac2-mirror-registry.cn-hangzhou.cr.aliyuncs.com/evaluate/sglang:nightly-dev-20260129-0998de08
+              command:
+                - python3
+                - -m
+                - sglang.launch_server
+                - --model-path
+                - /models/Qwen3.5-397B-A17B
+                - --host 0.0.0.0
+                - --port 8000
+                - --mem-fraction-static 0.9
+                - --tp-size 8
+              ports:
+                - containerPort: 8000
+                  name: http
+                  protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                initialDelaySeconds: 15
+                periodSeconds: 10
+                successThreshold: 1
+                tcpSocket:
+                  port: 8000
+                timeoutSeconds: 1
+              resources:
+                limits:
+                  nvidia.com/gpu: "8"
+                requests:
+                  nvidia.com/gpu: "8"
+              volumeMounts:
+                - mountPath: /models/Qwen3.5-397B-A17B
+                  name: model
+                - mountPath: /dev/shm
+                  name: dshm
+          volumes:
+            - name: model
+              persistentVolumeClaim:
+                claimName: qwen3-5
+            - name: dshm
+              emptyDir:
+                medium: Memory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: qwen3-5-sglang-agg
+  name: qwen3-5-sglang-agg
+  namespace: default
+spec:
+  ports:
+    - name: http
+      port: 8000
+      protocol: TCP
+      targetPort: 8000
+  selector:
+    rolebasedgroup.workloads.x-k8s.io/name: qwen3-5-sglang-agg
+    rolebasedgroup.workloads.x-k8s.io/role: server
+  type: ClusterIP
