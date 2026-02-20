@@ -10,17 +10,19 @@ spec:
         spec:
           containers:
             - name: engine
-              image: ac2-mirror-registry.cn-hangzhou.cr.aliyuncs.com/evaluate/sglang:nightly-dev-20260129-0998de08
+              image: ac2-mirror-registry.cn-hangzhou.cr.aliyuncs.com/evaluate/sglang:nightly-dev-20260220-73a7f0d0
               command:
                 - python3
                 - -m
                 - sglang.launch_server
                 - --model-path
                 - /models/Qwen3.5-397B-A17B
-                - --host 0.0.0.0
-                - --port 8000
-                - --mem-fraction-static 0.9
-                - --tp-size 8
+                - --port
+                - "8000"
+                - --mem-fraction-static
+                - "0.9"
+                - --tp-size
+                - "8"
               ports:
                 - containerPort: 8000
                   name: http
